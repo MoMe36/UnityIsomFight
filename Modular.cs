@@ -9,7 +9,7 @@ namespace Isom{
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider), typeof(Animator))]
 public class Modular : MonoBehaviour {
 
-	public enum States {idle, run};
+	public enum States {idle, run, jump, fight};
 	public enum NierSubStates {idle, fire}; 
 
 	public States current_state = States.idle; 
@@ -21,7 +21,7 @@ public class Modular : MonoBehaviour {
 
 	Inputs inputs; 
 	Move move; 
-	// NierFight fight; 
+	Fight fight; 
 	Rigidbody rb; 
 	Animator anim; 
 
@@ -42,7 +42,7 @@ public class Modular : MonoBehaviour {
 		
 
 		RelativeToMove(); 
-		// RelativeToFight(); 
+		RelativeToFight(); 
 		UpdateTimers(); 
 
 		
@@ -69,28 +69,28 @@ public class Modular : MonoBehaviour {
 		// if(inputs.Dash)
 		// 	move.Dash(); 
 
-		// if(inputs.Jump)
-		// 	move.Jump(); 
+		if(inputs.Jump)
+			move.Jump(); 
 
 		// if(inputs.Shoot)
 		// 	fight.Shoot(); 
 	}
 
-	// void RelativeToFight()
-	// {
+	void RelativeToFight()
+	{
 	// 	if(inputs.ChangeState && camera_change_state_cooldown <= 0f)
 	// 	{
 	// 		fight.ChangeState();
 	// 		camera_change_state_cooldown = 0.5f;  
 	// 	}
 
-	// 	if(inputs.Hit)
-	// 	{
-	// 		if(current_state == States.fight)
-	// 			fight.Hit();
-	// 		else
-	// 			fight.StartCombo();  
-	// 	}
+		if(inputs.Hit)
+		{
+			if(current_state == States.fight)
+				fight.Combo();
+			else
+				fight.Hit();  
+		}
 
 	// 	if(inputs.HeavyHit)
 	// 	{
@@ -101,12 +101,8 @@ public class Modular : MonoBehaviour {
 	// 	}
 
 	// 	fight.ChangeTarget(player_cam_direction.x); 
-	// }
+	}
 
-	// public bool IsJumping()
-	// {
-	// 	return current_state == States.jump; 
-	// }
 
 	// public bool IsNormal()
 	// {
@@ -133,6 +129,11 @@ public class Modular : MonoBehaviour {
 	// 	return current_state == States.impact; 
 	// }
 
+	public bool IsFighting()
+	{
+		return current_state == States.fight; 
+	}
+
 	public bool IsIdle()
 	{
 		return current_state == States.idle; 
@@ -143,11 +144,21 @@ public class Modular : MonoBehaviour {
 		return current_state == States.run; 
 	}
 
+	public bool IsJumping()
+	{
+		return current_state == States.jump; 
+	}
+
+
 	// public bool IsDodging()
 	// {
 	// 	return current_state == States.dodge; 
 	// }
 
+	public void InformHit(string info, bool state)
+	{
+
+	}
 
 	public void Inform(string info, bool state)
 	{
@@ -160,7 +171,7 @@ public class Modular : MonoBehaviour {
 			}
 		}
 
-		if(info == "Run")
+		else if(info == "Run")
 		{
 			if(state)
 			{
@@ -168,6 +179,23 @@ public class Modular : MonoBehaviour {
 				move.EnterRun(); 
 			}
 		}
+
+		else if(info == "Jump")
+		{
+			if(state)
+			{
+				current_state = States.jump; 
+				move.EnterJump(); 
+			}
+		}
+		else if(info == "Hit")
+		{
+			if(state)
+			{
+				current_state = States.fight; 
+			}
+		}
+
 	}
 
 	// 	if(info == "Move")
@@ -280,20 +308,20 @@ public class Modular : MonoBehaviour {
 	// 	fight.GetWeapon(state); 
 	// }
 
-	// public void ImpactInform(NierHitData data, Vector3 direction)
-	// {
-	// 	bool dodge = DodgeInform(); 
+	public void ImpactInform(HitData data, Vector3 direction)
+	{
+		// bool dodge = DodgeInform(); 
 
-	// 	if(dodge)
-	// 	{
-	// 		fight.Dodge(); 
-	// 	}
-	// 	else
-	// 	{
-	// 		fight.Impacted(); // triggers impact animation 
-	// 		move.ChangeVelocity(direction*data.HitForce);  
-	// 	}
-	// }
+		// if(dodge)
+		// {
+		// 	fight.Dodge(); 
+		// }
+		// else
+		// {
+			fight.Impacted(); // triggers impact animation 
+			move.ChangeVelocity(direction*data.HitForce);  
+		// }
+	}
 
 
 	// // This function is used to shortcut the hitbox activation in the case of a projectile using particles 
@@ -333,7 +361,7 @@ public class Modular : MonoBehaviour {
 		move = GetComponent<Move>(); 
 		rb = GetComponent<Rigidbody>(); 
 		anim = GetComponent<Animator>(); 
-		// fight = GetComponent<NierFight>(); 
+		fight = GetComponent<Fight>(); 
 	}
 }
 

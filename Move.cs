@@ -75,24 +75,41 @@ public class Move : MonoBehaviour {
 
 	}
 
-
 	void UpdatePhysics()
 	{
-		if(continuous_jump_control)
+		if(mothership.IsJumping())
 		{
-			bool up = true; 
-			if(rb.velocity.y <= MinVerticalSpeedForGravity)
+			ApplyAdditionalGravity(); 
+			if(rb.velocity.y < 0f)
 			{
-				ApplyAdditionalGravity();  
-				up = false; 
-			}
-			ContinuousJumpControl(up);
+				CheckGrounded(true); 
+			}			
 		}
 		else
 		{
-			CheckGrounded(); 
+			CheckGrounded(false); 
 		}
+
+		
 	}
+
+	// void UpdatePhysics()
+	// {
+	// 	if(continuous_jump_control)
+	// 	{
+	// 		bool up = true; 
+	// 		if(rb.velocity.y <= MinVerticalSpeedForGravity)
+	// 		{
+	// 			ApplyAdditionalGravity();  
+	// 			up = false; 
+	// 		}
+	// 		ContinuousJumpControl(up);
+	// 	}
+	// 	else
+	// 	{
+	// 		CheckGrounded(); 
+	// 	}
+	// }
 
 	void UpdateState()
 	{
@@ -170,8 +187,31 @@ public class Move : MonoBehaviour {
 		}
 	}
 
-	void CheckGrounded()
+	void CheckGrounded(bool already_jumping)
 	{
+
+		if(already_jumping)
+		{
+			Ray ray = new Ray(transform.position, Vector3.down); 
+			RaycastHit hit; 
+
+			if(Physics.Raycast(ray, out hit, height*1.05f))
+			{
+				SetTrigger("Land"); 
+			}
+			
+		}
+
+		else
+		{
+			Ray ray = new Ray(transform.position, Vector3.down); 
+			RaycastHit hit; 
+
+			if(!Physics.Raycast(ray, out hit, height*1.05f))
+			{
+				SetTrigger("Drop"); 
+			}
+		}
 		// if(!mothership.IsJumping())
 		// {
 		// 	Ray ray = new Ray(transform.position + transform.rotation*GroundedDetectionOffset, Vector3.down); 
@@ -208,6 +248,13 @@ public class Move : MonoBehaviour {
 			{
 				Vector3	desired_direction = ComputePlayerDirection(direction); 
 				MoveBody(desired_direction*Speed); 
+				TargetRotation = transform.rotation*ComputeAngleFromForward(desired_direction); 
+			}
+
+			else if(mothership.IsJumping())
+			{
+				Vector3	desired_direction = ComputePlayerDirection(direction); 
+				MoveBody(desired_direction*AirSpeed); 
 				TargetRotation = transform.rotation*ComputeAngleFromForward(desired_direction); 
 			}
 		}
@@ -359,6 +406,7 @@ public class Move : MonoBehaviour {
 	public void EnterJump()
 	{
 		SetDrag("min"); 
+		rb.velocity += Vector3.up*JumpForce; 
 		continuous_jump_control = true; 
 	}
 
@@ -387,7 +435,7 @@ public class Move : MonoBehaviour {
 
 	public void Jump()
 	{
-		anim.SetTrigger("Jump"); 
+		SetTrigger("Jump"); 
 	}
 
 	public void Drop()
