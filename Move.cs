@@ -257,12 +257,20 @@ public class Move : MonoBehaviour {
 				MoveBody(desired_direction*AirSpeed); 
 				TargetRotation = transform.rotation*ComputeAngleFromForward(desired_direction); 
 			}
+			else if(mothership.IsDashing())
+			{
+				TranslateBody(transform.forward*DashSpeed); 
+			}
 		}
 		else
 		{
 			if(mothership.IsRunning())
 			{
 				SetTrigger("Stop"); 
+			}
+			else if(mothership.IsDashing())
+			{
+				TranslateBody(transform.forward*DashSpeed); 
 			}
 		}
 		// if(mothership.IsNormal() ||  mothership.IsSprinting())
@@ -347,6 +355,11 @@ public class Move : MonoBehaviour {
 		rb.AddForce(v); 
 	}
 
+	void TranslateBody(Vector3 v)
+	{
+		transform.position += v*Time.deltaTime; 
+	}
+
 	public void ChangeVelocity(Vector3 v)
 	{
 		rb.velocity = v; 
@@ -392,9 +405,12 @@ public class Move : MonoBehaviour {
 		SetDrag("max"); 
 	}
 
-	public void EnterDash()
+	public void EnterDash(Vector3 target_direction)
 	{
-		TargetRotation = transform.rotation; 
+		rb.velocity *= 0f; 
+		Vector3	desired_direction = ComputePlayerDirection(target_direction);
+		TargetRotation = transform.rotation*ComputeAngleFromForward(desired_direction);
+		transform.rotation = TargetRotation; 
 		SetDrag("min"); 
 	}
 
@@ -430,7 +446,7 @@ public class Move : MonoBehaviour {
 
 	public void Dash()
 	{
-		anim.SetTrigger("Dash"); 
+		SetTrigger("Dash"); 
 	}
 
 	public void Jump()

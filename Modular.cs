@@ -9,7 +9,7 @@ namespace Isom{
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider), typeof(Animator))]
 public class Modular : MonoBehaviour {
 
-	public enum States {idle, run, jump, fight};
+	public enum States {idle, run, jump, fight, dash};
 	public enum NierSubStates {idle, fire}; 
 
 	public States current_state = States.idle; 
@@ -66,8 +66,8 @@ public class Modular : MonoBehaviour {
 
 		move.PlayerMove(player_direction); 
 
-		// if(inputs.Dash)
-		// 	move.Dash(); 
+		if(inputs.Dash)
+			move.Dash(); 
 
 		if(inputs.Jump)
 			move.Jump(); 
@@ -149,6 +149,11 @@ public class Modular : MonoBehaviour {
 		return current_state == States.jump; 
 	}
 
+	public bool IsDashing()
+	{
+		return current_state == States.dash; 
+	}
+
 
 	// public bool IsDodging()
 	// {
@@ -193,6 +198,14 @@ public class Modular : MonoBehaviour {
 			if(state)
 			{
 				current_state = States.fight; 
+			}
+		}
+		else if(info == "Dash")
+		{
+			if(state)
+			{
+				current_state = States.dash; 
+				move.EnterDash(player_direction); 
 			}
 		}
 
